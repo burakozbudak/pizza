@@ -51,11 +51,13 @@ const Order = () => {
 
   // Malzeme seçimini yönetme
   const handleToppingChange = (topping) => {
-    setToppings((prev) =>
-      prev.includes(topping)
-        ? prev.filter((t) => t !== topping)
-        : [...prev, topping]
-    );
+    if (toppings.includes(topping)) {
+      setToppings(toppings.filter((t) => t !== topping));
+    } else {
+      if (toppings.length < 10) {
+        setToppings([...toppings, topping]);
+      }
+    }
   };
 
   // Form validasyon kontrolü

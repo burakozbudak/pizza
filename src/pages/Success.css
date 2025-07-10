@@ -1,0 +1,15 @@
+.success-container {
+  text-align: center;
+  padding: 2rem;
+  color: #ce2829;
+}
+
+.order-summary {
+  background-color: #faf7f2;
+  border: 1px solid #fdc913;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  text-align: left;
+}
