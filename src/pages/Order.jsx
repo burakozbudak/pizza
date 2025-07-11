@@ -65,7 +65,7 @@ const Order = () => {
 
   return (
     <div className="order-container">
-      <h2>Position Absolute Acı Pizza</h2>
+      <h2>Lezzetli Pizza</h2>
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">

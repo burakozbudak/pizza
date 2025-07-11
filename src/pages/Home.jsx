@@ -9,7 +9,7 @@ const Home = () => {
     <div className="home-container">
       {/* Logo */}
       <img
-        src="/images/logo.svg"
+        src="/images/iteration-1-images/logo.svg"
         alt="Teknolojik Yemekler Logo"
         className="logo"
       />
@@ -17,7 +17,7 @@ const Home = () => {
       {/* Banner Image */}
       <div className="banner">
         <img
-          src="/images/home-banner.png"
+          src="/images/iteration-1-images/home-banner.png"
           alt="Lezzetli pizzalar"
           className="banner-image"
         />
