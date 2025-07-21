@@ -1,9 +1,9 @@
-// src/pages/Order.js
-import React from "react";
-import { useForm, Controller, useWatch } from "react-hook-form"; // useWatch eklendi
+// src/pages/Order.jsx
+import React, { useState } from "react";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
-import useOrderForm from "../../hooks/useOrderForm"; // Custom hook
+import useOrderForm from "../customhooks/useOrderForm";
 import "./Order.css";
 
 const Order = () => {
@@ -21,35 +21,53 @@ const Order = () => {
     },
   });
   const history = useHistory();
-  const { calculatePrice } = useOrderForm(); // Fiyat hesaplama hook'u
-  const formValues = useWatch({ control }); // Form değerlerini real-time izle
+  const { calculatePrice } = useOrderForm();
+  const formValues = useWatch({ control });
+  const [submitError, setSubmitError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
     try {
-      const res = await axios.post(
-        "https://reqres.in/api/pizza",
-        {
-          name: data.name,
-          size: data.size,
-          toppings: data.toppings,
-          notes: data.notes,
-          fastDelivery: data.fastDelivery,
-          totalPrice: calculatePrice(data), // Fiyat API'ye ekleniyor
-        },
-        { headers: { "x-api-key": "reqres-free-v1" } }
-      );
+      const payload = {
+        name: data.name || "Misafir",
+        size: data.size || "Orta",
+        toppings: data.toppings || [],
+        notes: data.notes || "",
+        fastDelivery: data.fastDelivery || false,
+        totalPrice: calculatePrice(data) || 50,
+      };
+
+      const res = await axios.post("https://reqres.in/api/pizza", payload, {
+        headers: { "x-api-key": "reqres-free-v1" },
+      });
+
       history.push({
         pathname: "/success",
         state: res.data,
       });
     } catch (err) {
-      console.error("Sipariş hatası:", err);
+      console.error(
+        "Sipariş hatası:",
+        err.response ? err.response.data : err.message
+      );
+      const errorMessage =
+        err.response?.status === 500
+          ? "Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin."
+          : "Sipariş sırasında bir hata oluştu. Lütfen bilgileri kontrol edin.";
+      setSubmitError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="order-container">
       <h2>Lezzetli Pizza</h2>
+      {submitError && <div className="error-message">{submitError}</div>}
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <label>İsim</label>
@@ -169,15 +187,15 @@ const Order = () => {
             />{" "}
             Hızlı Teslimat (+30 TL)
           </label>
-          <p>Fiyat: {calculatePrice(formValues)} TL</p> {/* Real-time fiyat */}
+          <p>Fiyat: {calculatePrice(formValues)} TL</p>
         </div>
 
         <button
           type="submit"
-          disabled={Object.keys(errors).length > 0}
+          disabled={Object.keys(errors).length > 0 || isSubmitting}
           className="submit-button"
         >
-          SİPARİŞ VER
+          {isSubmitting ? "Gönderiliyor..." : "SİPARİŞ VER"}
         </button>
       </form>
     </div>

@@ -33,7 +33,7 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Footer (optional) */}
+      {/* Footer */}
       <div className="footer">
         <img
           src="/images/logo-footer.svg"
@@ -46,7 +46,3 @@ const Home = () => {
 };
 
 export default Home;
-
-// This code defines a simple React component for the home page of a food ordering application.
-// It includes a header with the title "Teknolojik Yemekler" and a main section with a hero message and a button to navigate to the order page.
-// The useHistory hook from react-router-dom is used to programmatically navigate to the order page when the button is clicked.

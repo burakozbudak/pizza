@@ -65,5 +65,8 @@
     "rules": {
       "react/react-in-jsx-scope": "off"
     }
+  },
+  "dependencies": {
+    "react-hook-form": "^7.60.0"
   }
 }
