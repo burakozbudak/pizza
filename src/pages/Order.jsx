@@ -1,45 +1,44 @@
-import React, { useState } from "react";
+// src/pages/Order.js
+import React from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
+import useOrderForm from "../../hooks/useOrderForm"; // Custom hook
 import "./Order.css";
 
 const Order = () => {
-  // State tanımlamaları
-  const [name, setName] = useState("");
-  const [size, setSize] = useState("");
-  const [toppings, setToppings] = useState([]);
-  const [notes, setNotes] = useState("");
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm({
+    defaultValues: {
+      name: "",
+      size: "",
+      toppings: [],
+      notes: "",
+      fastDelivery: false,
+    },
+  });
   const history = useHistory();
+  const { calculatePrice } = useOrderForm(); // Fiyat hesaplama hook'u
+  const formValues = watch(); // Form değerlerini real-time izle
 
-  // Malzeme seçenekleri
-  const toppingOptions = [
-    "Pepperoni",
-    "Mantar",
-    "Soğan",
-    "Sucuk",
-    "Jalapeno",
-    "Ananas",
-    "Mısır",
-    "Zeytin",
-  ];
-
-  // Form gönderme işlevi
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     try {
       const res = await axios.post(
         "https://reqres.in/api/pizza",
         {
-          name,
-          size,
-          toppings,
-          notes,
+          name: data.name,
+          size: data.size,
+          toppings: data.toppings,
+          notes: data.notes,
+          fastDelivery: data.fastDelivery,
+          totalPrice: calculatePrice(data), // Fiyat API'ye ekleniyor
         },
-        {
-          headers: { "x-api-key": "reqres-free-v1" },
-        }
+        { headers: { "x-api-key": "reqres-free-v1" } }
       );
-
       history.push({
         pathname: "/success",
         state: res.data,
@@ -49,86 +48,136 @@ const Order = () => {
     }
   };
 
-  // Malzeme seçimini yönetme
-  const handleToppingChange = (topping) => {
-    if (toppings.includes(topping)) {
-      setToppings(toppings.filter((t) => t !== topping));
-    } else {
-      if (toppings.length < 10) {
-        setToppings([...toppings, topping]);
-      }
-    }
-  };
-
-  // Form validasyon kontrolü
-  const isFormValid = name.length >= 3 && size && toppings.length >= 4;
-
   return (
     <div className="order-container">
       <h2>Lezzetli Pizza</h2>
-
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <label>İsim</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            minLength="3"
-            required
+          <Controller
+            name="name"
+            control={control}
+            rules={{
+              required: "İsim gereklidir",
+              minLength: { value: 3, message: "En az 3 karakter giriniz" },
+            }}
+            render={({ field }) => (
+              <input type="text" {...field} placeholder="İsminizi girin" />
+            )}
           />
-          {name.length > 0 && name.length < 3 && (
-            <p className="error">En az 3 karakter giriniz</p>
-          )}
+          {errors.name && <p className="error">{errors.name.message}</p>}
         </div>
 
         <div className="form-group">
           <label>Boyut Seç</label>
-          {["Küçük", "Orta", "Büyük"].map((option) => (
-            <div key={option}>
-              <input
-                type="radio"
-                id={option}
-                name="size"
-                value={option}
-                checked={size === option}
-                onChange={() => setSize(option)}
-              />
-              <label htmlFor={option}>{option}</label>
-            </div>
-          ))}
+          <Controller
+            name="size"
+            control={control}
+            rules={{ required: "Boyut seçimi gereklidir" }}
+            render={({ field }) => (
+              <>
+                {["Küçük", "Orta", "Büyük"].map((option) => (
+                  <div key={option}>
+                    <input
+                      type="radio"
+                      id={option}
+                      {...field}
+                      value={option}
+                      checked={field.value === option}
+                      onChange={() => field.onChange(option)}
+                    />
+                    <label htmlFor={option}>{option}</label>
+                  </div>
+                ))}
+              </>
+            )}
+          />
+          {errors.size && <p className="error">{errors.size.message}</p>}
         </div>
 
         <div className="form-group">
           <label>Ek Malzemeler (En az 4)</label>
           <div className="toppings-container">
-            {toppingOptions.map((topping) => (
+            {[
+              "Pepperoni",
+              "Mantar",
+              "Soğan",
+              "Sucuk",
+              "Jalapeno",
+              "Ananas",
+              "Mısır",
+              "Zeytin",
+            ].map((topping) => (
               <div key={topping}>
-                <input
-                  type="checkbox"
-                  id={topping}
-                  checked={toppings.includes(topping)}
-                  onChange={() => handleToppingChange(topping)}
+                <Controller
+                  name="toppings"
+                  control={control}
+                  rules={{
+                    validate: (value) =>
+                      value.length >= 4 || "En az 4 malzeme seçmelisiniz",
+                  }}
+                  render={({ field }) => (
+                    <input
+                      type="checkbox"
+                      id={topping}
+                      checked={field.value.includes(topping)}
+                      onChange={(e) => {
+                        const newToppings = e.target.checked
+                          ? [...field.value, topping]
+                          : field.value.filter((t) => t !== topping);
+                        field.onChange(newToppings);
+                      }}
+                    />
+                  )}
                 />
                 <label htmlFor={topping}>{topping}</label>
               </div>
             ))}
           </div>
-          {toppings.length < 4 && toppings.length > 0 && (
-            <p className="error">En az 4 malzeme seçmelisiniz</p>
+          {errors.toppings && (
+            <p className="error">{errors.toppings.message}</p>
           )}
         </div>
 
         <div className="form-group">
           <label>Sipariş Notu</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows="4"
+          <Controller
+            name="notes"
+            control={control}
+            render={({ field }) => (
+              <textarea
+                {...field}
+                rows="4"
+                placeholder="Eklemek istediğiniz notlar"
+              />
+            )}
           />
         </div>
 
-        <button type="submit" disabled={!isFormValid} className="submit-button">
+        <div className="form-group">
+          <label>
+            <Controller
+              name="fastDelivery"
+              control={control}
+              render={({ field }) => (
+                <input
+                  type="checkbox"
+                  {...field}
+                  checked={field.value}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                />
+              )}
+            />{" "}
+            Hızlı Teslimat (+30 TL)
+          </label>
+          <p>Fiyat: {calculatePrice(formValues)} TL</p> {/* Real-time fiyat */}
+        </div>
+
+        <button
+          type="submit"
+          disabled={Object.keys(errors).length > 0}
+          className="submit-button"
+        >
           SİPARİŞ VER
         </button>
       </form>
