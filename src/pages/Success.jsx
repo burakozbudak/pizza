@@ -1,3 +1,4 @@
+// src/pages/Success.js
 import React from "react";
 import { useLocation } from "react-router-dom";
 import "./Success.css";
@@ -27,6 +28,14 @@ const Success = () => {
               <strong>Notlar:</strong> {state.notes}
             </p>
           )}
+          {state.fastDelivery && (
+            <p>
+              <strong>Hızlı Teslimat:</strong> Evet (+30 TL)
+            </p>
+          )}
+          <p>
+            <strong>Toplam Fiyat:</strong> {state.totalPrice} TL
+          </p>
         </div>
       )}
     </div>
