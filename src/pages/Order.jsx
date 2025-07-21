@@ -1,6 +1,6 @@
 // src/pages/Order.js
 import React from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form"; // useWatch eklendi
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 import useOrderForm from "../../hooks/useOrderForm"; // Custom hook
@@ -11,7 +11,6 @@ const Order = () => {
     control,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm({
     defaultValues: {
       name: "",
@@ -23,7 +22,7 @@ const Order = () => {
   });
   const history = useHistory();
   const { calculatePrice } = useOrderForm(); // Fiyat hesaplama hook'u
-  const formValues = watch(); // Form değerlerini real-time izle
+  const formValues = useWatch({ control }); // Form değerlerini real-time izle
 
   const onSubmit = async (data) => {
     try {
